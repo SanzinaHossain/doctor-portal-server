@@ -92,6 +92,25 @@ const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology:
            })
            res.send(services)
          })
+         //admin set up
+         app.put('/users/admin/:email',verifyJWT,async(req,res)=>{
+          const email=req.params.email;
+          const requester=req.decoded.email;
+          console.log(requester);
+          const requesterAccount=await userCollection.findOne({email:requester})
+          if(requesterAccount.role==='admin')
+          {
+            const filter={email:email}
+            const updateDoc={
+              $set:{role:'admin'},
+            };
+            const result= await userCollection.updateOne(filter,updateDoc);
+            res.send(result);
+          }
+          else{
+            res.status(403).send({message:'forbidden access'});
+          }
+        })
          app.put('/user/:email',async(req,res)=>{
            const email=req.params.email;
            const user=req.body;
@@ -103,6 +122,13 @@ const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology:
            const result=await userCollection.updateOne(filter,updateDoc,options);
            const token=jwt.sign({email:email},process.env.ACCESS_TOKEN_SECRET,{expiresIn:'1h'})
            res.send({result,token});
+         })
+         //find which users are admin
+         app.get('/admin/:email',async(req,res)=>{
+           const email=req.params.email;
+           const user=await userCollection.findOne({email:email})
+           const isadmin=user.role==='admin';
+           res.send({admin:isadmin})
          })
    }
    finally{
