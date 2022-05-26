@@ -34,7 +34,21 @@ const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology:
          const bookingCollection=client.db('doctor-portal').collection('booking');
          const userCollection=client.db('doctor-portal').collection('users');
          console.log("database connected")
+         const doctorCollection=client.db('doctor-portal').collection('doctors');
 
+         //doctor data push
+          app.post('/doctors',async(req,res)=>{
+            const doctor=req.body;
+            const result=await doctorCollection.insertOne(doctor);
+            res.send(result);
+          })
+          //get all data from doctors
+          app.get('/doctors',async(req,res)=>{
+            const query={};
+            const cursor=doctorCollection.find(query);
+            const doctors=await cursor.toArray()
+            res.send(doctors)
+          })
          //get all data from services
          app.get('/services',async(req,res)=>{
            const query={};
